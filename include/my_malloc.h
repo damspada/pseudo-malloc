@@ -1,0 +1,14 @@
+#ifndef MY_MALLOC_H
+#define MY_MALLOC_H
+
+#include <stddef.h>
+#include <unistd.h>
+
+#define PAGE_SIZE 4096 // 4KB
+#define SMALL_THRESHOLD (PAGE_SIZE / 4) // 1024 bytes so 1KB
+#define BUDDY_POOL_SIZE (1024 * 1024)  // 1MB (1024 * 1024 = 1048576 bytes so 1MB) for buddy allocator
+
+void* my_malloc(size_t size); // Allocate memory
+void my_free(void* ptr); // Free memory
+
+#endif // MY_MALLOC_H
