@@ -9,9 +9,11 @@ Bitmap* bitmap_init(size_t size) {
     }
 
     bitmap->size = size;
-    bitmap->bits = (unsigned char*)malloc((size + 7) / 8 * sizeof(unsigned char));
+
     // We round up to the nearest byte by adding 7 before dividing by 8.
     // This ensures that we have enough space for all bits.
+    size_t bytes_needed = (size + 7) / 8;
+    bitmap->bits = (unsigned char*)malloc(bytes_needed * sizeof(unsigned char));
     
     if (!bitmap->bits) {
         fprintf(stderr, "[bitmap_init]: Allocation of bitmap bits failed\n");
@@ -20,7 +22,12 @@ Bitmap* bitmap_init(size_t size) {
     }
     
     // Initialize all bits to 0
-    memset(bitmap->bits, 0, (size + 7) / 8 * sizeof(unsigned char));
+    if (memset(bitmap->bits, 0, bytes_needed * sizeof(unsigned char)) == NULL) {
+        fprintf(stderr, "[bitmap_init]: Setting bits to 0 failed\n");
+        free(bitmap->bits);
+        free(bitmap);
+        return NULL;
+    }
 
     return bitmap;
 }
@@ -34,7 +41,7 @@ void bitmap_free(Bitmap* bitmap){
     
     free(bitmap->bits);
     free(bitmap);
-
+    
 }
 
 void bitmap_set(Bitmap* bitmap, size_t index) {
@@ -45,16 +52,19 @@ void bitmap_set(Bitmap* bitmap, size_t index) {
     }
 
     if (index >= bitmap->size) {
-        fprintf(stderr, "[bitmap_set]: Index out of bounds\n");
+        fprintf(stderr, "[bitmap_set]: Index %zu out of bounds (max: %zu)\n", 
+                index, bitmap->size - 1);
         return;
     }
 
     // For setting a bit:
-    // 1. Identify the byte: index / 8
-    // 2. Identify the bit within the byte: index % 8
-    // 3. Use bitwise OR to set the bit
-    bitmap->bits[index / 8] |= (1 << (index % 8));
-    
+    // 1. Get the byte containing the bit
+    // 2. Create a mask for the specific bit
+    // 3. Use bitwise OR to set it
+    int byte_index = index / 8; // Get the byte index
+    int mask = (1 << (index % 8)); // Create a mask for the specific bit
+    bitmap->bits[byte_index] |= mask; // Set the bit using OR operation
+
 }
 
 void bitmap_clear(Bitmap* bitmap, size_t index) {
@@ -65,14 +75,36 @@ void bitmap_clear(Bitmap* bitmap, size_t index) {
     }
 
     if (index >= bitmap->size) {
-        fprintf(stderr, "[bitmap_clear]: Index out of bounds\n");
+        fprintf(stderr, "[bitmap_clear]: Index %zu out of bounds (max: %zu)\n", 
+                index, bitmap->size - 1);
         return;
     }
 
     // For clearing a bit:
-    // 1. Identify the byte: index / 8
-    // 2. Identify the bit within the byte: index % 8
-    // 3. Use bitwise AND with the negation to clear the bit
-    bitmap->bits[index / 8] &= ~(1 << (index % 8));
+    // 1. Get the byte containing the bit
+    // 2. Create a mask for the specific bit
+    // 3. Use bitwise AND with the negation to clear it
+    int byte_index = index / 8; // Get the byte index
+    int mask = (1 << (index % 8)); // Create a mask for the specific bit
+    bitmap->bits[byte_index] &= ~mask; // Clear the bit using negated mask
+}
+
+// Test if a bit is set or not
+int bitmap_test(const Bitmap* bitmap, size_t index) {
+    if (!bitmap) {
+        fprintf(stderr, "[bitmap_test]: Invalid bitmap pointer\n");
+        return -1; // Error indicator
+    }
+
+    if (index >= bitmap->size) {
+        fprintf(stderr, "[bitmap_test]: Index %zu out of bounds (max: %zu)\n", 
+                index, bitmap->size - 1);
+        return -1; // Error indicator
+    }
+
+    int byte_index = bitmap->bits[index / 8]; // Get the byte containing the bit
+    int mask = (1 << (index % 8)); // Create a mask for the specific bit
+    int bit_value = byte_index & mask; // Mask application
+    return bit_value ? 1 : 0; // Return 1 if set, 0 if not
 
 }
