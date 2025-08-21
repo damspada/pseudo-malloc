@@ -1,8 +1,15 @@
 #ifndef MY_MALLOC_H
 #define MY_MALLOC_H
 
+#include "buddy_allocator.h"
+
 #include <stddef.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <errno.h>
+#include <string.h>
+#include <stdint.h>
 
 #define PAGE_SIZE 4096 // 4KB
 #define SMALL_THRESHOLD (PAGE_SIZE / 4) // 1024 bytes so 1KB

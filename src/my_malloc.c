@@ -1,9 +1,4 @@
 #include "../include/my_malloc.h"
-#include <stdio.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <string.h>
-#include <stdint.h>
 
 extern BuddyAllocator buddy_allocator;
 
@@ -72,8 +67,8 @@ void my_free(void* ptr) {
         return;
     }
 
-    // Check if ptr is within BuddyAllocator range ptr is within BuddyAllocator range --> ptr deallocation with BuddyAllocator
-    if (ptr >= buddy_allocator.memory && ptr < (buddy_allocator.memory + BUDDY_POOL_SIZE)) {
+    // Check if ptr is within BuddyAllocator range --> ptr deallocation with BuddyAllocator
+    if (ptr >= buddy_allocator.memory_pool && ptr < (buddy_allocator.memory_pool + BUDDY_POOL_SIZE)) {
         printf("[my_free]: Pointer deallocation using BuddyAllocator free..\n");
         BuddyAllocator_free(&buddy_allocator, ptr);
         return;
