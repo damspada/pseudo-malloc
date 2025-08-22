@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "../include/my_malloc.h"
 
 extern BuddyAllocator buddy_allocator;
