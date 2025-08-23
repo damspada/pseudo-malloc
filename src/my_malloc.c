@@ -5,12 +5,13 @@ extern BuddyAllocator buddy_allocator;
 
 // Check if pointer is page-aligned
 static inline int is_page_aligned(void* ptr) {
-    return ((uintptr_t)ptr & (PAGE_SIZE - 1)) == 0;
+    return ((size_t)ptr % PAGE_SIZE) == 0;
 }
 
-// Round up to page size using bit operations
+// Round up to page
 static inline size_t round_to_pages(size_t size) {
-    return (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    size_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    return num_pages * PAGE_SIZE;
 }
 
 void* my_malloc(size_t size) {
@@ -45,7 +46,7 @@ void* my_malloc(size_t size) {
     // check for correct allocation
     if (ptr == MAP_FAILED) {
         errno = ENOMEM; // Out of memory
-        perror("[my_malloc]: ERROR: mmap failed");
+        fprintf(stderr, "[my_malloc]: ERROR: mmap failed\n");
         return NULL;
     }
 
@@ -75,17 +76,26 @@ void my_free(void* ptr) {
         return;
     }
 
-    // ptr deallocation with munmap
+    // Ptr deallocation with munmap
     printf("[my_free]: Pointer deallocation with munmap..\n");
-    size_t* metadata = (size_t*)((char*)ptr - sizeof(size_t));
+    void* metadata_ptr = (char*)ptr - sizeof(size_t);
 
-    // Calculate allocation size and check alignment
-    size_t alloc_size = round_to_pages(*metadata + sizeof(size_t));
-    
-    if (munmap(metadata, alloc_size) == -1) {
-        perror("[my_free]: Error: munmap failed");
+    // Validate that the metadata pointer is page-aligned
+    if (!is_page_aligned(metadata_ptr)) {
+        fprintf(stderr, "[my_free]: Error: pointer is not properly aligned, may not be allocated by my_malloc\n");
         return;
     }
 
-    printf("[my_free]: Successfully freed %zu bytes\n", alloc_size);
+    // Get the original requested size stored in metadata
+    size_t requested_size = *(size_t*)metadata_ptr;
+
+    // Calculate the total allocated size (rounded to page size)
+    size_t alloc_size = round_to_pages(sizeof(size_t) + requested_size);
+    
+    if (munmap(metadata_ptr, alloc_size) == -1) {
+        fprintf(stderr, "[my_free]: Error: munmap failed\n");
+        return;
+    }
+    
+    printf("[my_free]: Successfully freed %zu bytes (requested: %zu)\n", alloc_size, requested_size);
 }
