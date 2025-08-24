@@ -29,7 +29,7 @@ void* my_malloc(size_t size) {
         printf("[my_malloc]: Small size (%zu), using BuddyAllocator\n", size);
         void* ptr = BuddyAllocator_malloc(&buddy_allocator, size);
         if (!ptr) {
-            printf("[my_malloc]: BuddyAllocator failed\n");
+            fprintf(stderr, "[my_malloc]: Error: BuddyAllocator failed\n");
         }
         return ptr;
     }
@@ -46,7 +46,7 @@ void* my_malloc(size_t size) {
     // check for correct allocation
     if (ptr == MAP_FAILED) {
         errno = ENOMEM; // Out of memory
-        fprintf(stderr, "[my_malloc]: ERROR: mmap failed\n");
+        fprintf(stderr, "[my_malloc]: Error: mmap failed\n");
         return NULL;
     }
 
@@ -56,8 +56,8 @@ void* my_malloc(size_t size) {
 
     // Return pointer after metadata
     void* user_ptr = (char*)ptr + sizeof(size_t);
-    printf("[my_malloc]: Success: ptr=%p, requested=%zu, allocated=%zu\n", user_ptr, size, alloc_size);
-    
+    printf("[my_malloc]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", user_ptr, size, alloc_size);
+
     return user_ptr;
 }
 

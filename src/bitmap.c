@@ -16,14 +16,14 @@ Bitmap* bitmap_init(size_t size) {
     bitmap->bits = (unsigned char*)malloc(bytes_needed * sizeof(unsigned char));
     
     if (!bitmap->bits) {
-        fprintf(stderr, "[bitmap_init]: Allocation of bitmap bits failed\n");
+        fprintf(stderr, "[bitmap_init]: Error: Allocation of bitmap bits failed\n");
         free(bitmap);
         return NULL;
     }
     
     // Initialize all bits to 0
     if (memset(bitmap->bits, 0, bytes_needed * sizeof(unsigned char)) == NULL) {
-        fprintf(stderr, "[bitmap_init]: Setting bits to 0 failed\n");
+        fprintf(stderr, "[bitmap_init]: Error: Setting bits to 0 failed\n");
         free(bitmap->bits);
         free(bitmap);
         return NULL;
@@ -35,7 +35,7 @@ Bitmap* bitmap_init(size_t size) {
 void bitmap_free(Bitmap* bitmap){
     
     if (!bitmap) {
-        fprintf(stderr, "[bitmap_free]: Invalid bitmap pointer\n");
+        fprintf(stderr, "[bitmap_free]: Error: Invalid bitmap pointer\n");
         return;
     }
     
@@ -47,12 +47,12 @@ void bitmap_free(Bitmap* bitmap){
 void bitmap_set(Bitmap* bitmap, size_t index) {
     
     if (!bitmap) {
-        fprintf(stderr, "[bitmap_set]: Invalid bitmap pointer\n");
+        fprintf(stderr, "[bitmap_set]: Error: Invalid bitmap pointer\n");
         return;
     }
 
     if (index >= bitmap->size) {
-        fprintf(stderr, "[bitmap_set]: Index %zu out of bounds (max: %zu)\n", 
+        fprintf(stderr, "[bitmap_set]: Error: Index %zu out of bounds (max: %zu)\n", 
                 index, bitmap->size - 1);
         return;
     }
@@ -70,12 +70,12 @@ void bitmap_set(Bitmap* bitmap, size_t index) {
 void bitmap_clear(Bitmap* bitmap, size_t index) {
 
     if (!bitmap) {
-        fprintf(stderr, "[bitmap_clear]: Invalid bitmap pointer\n");
+        fprintf(stderr, "[bitmap_clear]: Error: Invalid bitmap pointer\n");
         return;
     }
 
     if (index >= bitmap->size) {
-        fprintf(stderr, "[bitmap_clear]: Index %zu out of bounds (max: %zu)\n", 
+        fprintf(stderr, "[bitmap_clear]: Error: Index %zu out of bounds (max: %zu)\n", 
                 index, bitmap->size - 1);
         return;
     }
@@ -92,12 +92,12 @@ void bitmap_clear(Bitmap* bitmap, size_t index) {
 // Test if a bit is set or not
 int bitmap_test(const Bitmap* bitmap, size_t index) {
     if (!bitmap) {
-        fprintf(stderr, "[bitmap_test]: Invalid bitmap pointer\n");
+        fprintf(stderr, "[bitmap_test]: Error: Invalid bitmap pointer\n");
         return -1; // Error indicator
     }
 
     if (index >= bitmap->size) {
-        fprintf(stderr, "[bitmap_test]: Index %zu out of bounds (max: %zu)\n", 
+        fprintf(stderr, "[bitmap_test]: Error: Index %zu out of bounds (max: %zu)\n", 
                 index, bitmap->size - 1);
         return -1; // Error indicator
     }

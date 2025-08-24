@@ -24,7 +24,6 @@ void bitmap_set(Bitmap* bitmap, size_t index);
 void bitmap_clear(Bitmap* bitmap, size_t index);
 
 // Test if a bit is set (1) or cleared (0)
-// Returns -1 on error
 int bitmap_test(const Bitmap* bitmap, size_t index);
 
 #endif // BITMAP_H
