@@ -93,13 +93,13 @@ void bitmap_clear(Bitmap* bitmap, size_t index) {
 int bitmap_test(const Bitmap* bitmap, size_t index) {
     if (!bitmap) {
         fprintf(stderr, "[bitmap_test]: Error: Invalid bitmap pointer\n");
-        return -1; // Error indicator
+        return -1;
     }
 
     if (index >= bitmap->size) {
         fprintf(stderr, "[bitmap_test]: Error: Index %zu out of bounds (max: %zu)\n", 
                 index, bitmap->size - 1);
-        return -1; // Error indicator
+        return -1;
     }
 
     int byte_index = bitmap->bits[index / 8]; // Get the byte containing the bit

@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 #include "../include/my_malloc.h"
 
-extern BuddyAllocator buddy_allocator;
+BuddyAllocator buddy_allocator = {0};
 
 // Check if pointer is page-aligned
 static inline int is_page_aligned(void* ptr) {
@@ -16,9 +16,9 @@ static inline size_t round_to_pages(size_t size) {
 
 void* my_malloc(size_t size) {
 
-    // Since size_t is always >= 0 is unnecessary check if < 0
+    // Since size_t is unsigned long is always >= 0 is unnecessary check if < 0
 
-    // zero size --> return NULL
+    // Zero size --> return NULL
     if(size == 0) {
         printf("[my_malloc]: Warning: size is 0, returning NULL\n");
         return NULL;
