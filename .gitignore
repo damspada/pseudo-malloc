@@ -1,0 +1,75 @@
+# Object files
+*.o
+*.obj
+
+# Build directory
+build/
+
+# Executable files
+test/test_bitmap
+test/test_buddy_allocator
+test/test_my_malloc
+test/run_tests
+
+# Static libraries
+*.a
+*.lib
+
+# Dynamic libraries
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Core dumps
+core
+core.*
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.#*
+\#*#
+
+# IDE and editor files
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Log files
+*.log
+
+# Test outputs
+valgrind-out.txt
+*.out
+
+# Package files
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.rar
+*.7z
