@@ -3,11 +3,6 @@
 
 BuddyAllocator buddy_allocator = {0};
 
-// Check if pointer is page-aligned
-static inline int is_page_aligned(void* ptr) {
-    return ((size_t)ptr % PAGE_SIZE) == 0;
-}
-
 // Round up to page
 static inline size_t round_to_pages(size_t size) {
     size_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -55,10 +50,10 @@ void* my_malloc(size_t size) {
     *metadata = size;  // Store original requested size
 
     // Return pointer after metadata
-    void* user_ptr = (char*)ptr + sizeof(size_t);
-    printf("[my_malloc]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", user_ptr, size, alloc_size);
+    void* return_ptr = (char*)ptr + sizeof(size_t);
+    printf("[my_malloc]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", return_ptr, size, alloc_size);
 
-    return user_ptr;
+    return return_ptr;
 }
 
 void my_free(void* ptr) {
@@ -79,12 +74,6 @@ void my_free(void* ptr) {
     // Ptr deallocation with munmap
     printf("[my_free]: Pointer deallocation with munmap..\n");
     void* metadata_ptr = (char*)ptr - sizeof(size_t);
-
-    // Validate that the metadata pointer is page-aligned
-    if (!is_page_aligned(metadata_ptr)) {
-        fprintf(stderr, "[my_free]: Error: pointer is not properly aligned, may not be allocated by my_malloc\n");
-        return;
-    }
 
     // Get the original requested size stored in metadata
     size_t requested_size = *(size_t*)metadata_ptr;

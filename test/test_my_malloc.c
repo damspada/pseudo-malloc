@@ -131,6 +131,77 @@ void test_edge_cases() {
 
 }
 
+void test_small_allocation_after_free_big_block() {
+    printf("\n--- Testing small allocation after freeing a big block ---\n");
+
+    // Allocate a large block
+    void* large_block = my_malloc(512);  // 512 bytes
+    check(large_block != NULL, "Allocated 512 bytes block");
+
+    // Allocate a small block
+    void* small_block = my_malloc(128);
+    check(small_block != NULL, "Allocated 128 bytes block");
+
+    // Free the large block
+    my_free(large_block);
+
+    // Now allocate another small block
+    void* small_block2 = my_malloc(128);
+
+    check(small_block2 != NULL, "Allocated another 128 bytes block");
+
+    // check that the index of the second small block is before the first block
+    check(small_block2 < small_block, "Second small block is before first small block");
+
+    // Free the small block
+    my_free(small_block2);
+
+    // Free the first small block
+    my_free(small_block);
+
+}
+
+void test_full_allocation_of_buddy_pool_512() {
+    printf("\n--- Testing full allocation of buddy pool ---\n");
+
+    // Allocate memory until the 1048576 bytes pool is full with 2048 blocks of 512 bytes
+    void* blocks[2048];
+    for (int i = 0; i < 2048; i++) {
+        blocks[i] = my_malloc(512);
+    }
+
+    // Try to allocate one more block (should fail)
+    void* extra = my_malloc(128);
+    check(extra == NULL, "Extra allocation fails when pool is full");
+
+    // Free all blocks
+    for (int i = 0; i < 2048; i++) {
+        my_free(blocks[i]);
+    }
+
+}
+
+void test_full_allocation_of_buddy_pool_1023() {
+    printf("\n--- Testing full allocation of buddy pool ---\n");
+
+    // Allocate memory until the 1048576 bytes pool is full with 1024 blocks of 1023 bytes (so rounded to 1024 bit but 1023 to avoid the threshold check)
+    void* blocks[1024];
+    for (int i = 0; i < 1024; i++) {
+        blocks[i] = my_malloc(1023);
+    }
+
+    // Try to allocate one more block (should fail)
+    void* extra = my_malloc(128);
+    check(extra == NULL, "Extra allocation fails when pool is full");
+
+    // Free all blocks
+    for (int i = 0; i < 1024; i++) {
+        my_free(blocks[i]);
+    }
+    
+
+}
+
 int main() {
 
     printf("Running pseudo malloc tests...\n");
@@ -139,6 +210,9 @@ int main() {
     test_different_sizes();
     test_multiple_allocations();
     test_edge_cases();
+    test_small_allocation_after_free_big_block();
+    test_full_allocation_of_buddy_pool_512();
+    test_full_allocation_of_buddy_pool_1023();
 
     printf("\nResults: %d passed, %d failed\n", passed, failed);
     
