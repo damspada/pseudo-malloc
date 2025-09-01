@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/buddy_allocator.h"
+#include "../include/debug_print.h"
 
 // Testing the buddy allocator (hope it works)
 
@@ -10,10 +11,10 @@ int failed = 0;
 
 void check(int condition, const char* msg) {
     if (condition) {
-        printf("✓ %s\n", msg);
+        DEBUG_PRINTF("✓ %s\n", msg);
         passed++;
     } else {
-        printf("✗ %s\n", msg);
+        DEBUG_PRINTF("✗ %s\n", msg);
         failed++;
     }
 }
@@ -28,7 +29,7 @@ void cleanup_allocator(BuddyAllocator* allocator) {
 
 void test_initialization() {
 
-    printf("\n--- Testing allocator setup ---\n");
+    DEBUG_PRINTF("\n--- Testing allocator setup ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
 
@@ -41,11 +42,11 @@ void test_initialization() {
 }
 
 void test_simple_allocations() {
-    printf("\n--- Testing basic allocations ---\n");
+    DEBUG_PRINTF("\n--- Testing basic allocations ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     if (!allocator) {
-        printf("Failed to create allocator for this test\n");
+        DEBUG_PRINTF("Failed to create allocator for this test\n");
         return;
     }
     
@@ -79,7 +80,7 @@ void test_simple_allocations() {
 }
 
 void test_allocation_patterns() {
-    printf("\n--- Testing allocation patterns ---\n");
+    DEBUG_PRINTF("\n--- Testing allocation patterns ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     
@@ -124,7 +125,7 @@ void test_allocation_patterns() {
 }
 
 void test_edge_cases() {
-    printf("\n--- Testing edge cases ---\n");
+    DEBUG_PRINTF("\n--- Testing edge cases ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     if (!allocator) return;
@@ -149,7 +150,7 @@ void test_edge_cases() {
 
 void test_initialization_metabuddy() {
 
-    printf("\n--- Testing allocator setup ---\n");
+    DEBUG_PRINTF("\n--- Testing allocator setup ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
 
@@ -162,11 +163,11 @@ void test_initialization_metabuddy() {
 }
 
 void test_simple_allocations_metabuddy() {
-    printf("\n--- Testing basic allocations ---\n");
+    DEBUG_PRINTF("\n--- Testing basic allocations ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     if (!allocator) {
-        printf("Failed to create allocator for this test\n");
+        DEBUG_PRINTF("Failed to create allocator for this test\n");
         return;
     }
     
@@ -200,7 +201,7 @@ void test_simple_allocations_metabuddy() {
 }
 
 void test_allocation_patterns_metabuddy() {
-    printf("\n--- Testing allocation patterns ---\n");
+    DEBUG_PRINTF("\n--- Testing allocation patterns ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     
@@ -245,7 +246,7 @@ void test_allocation_patterns_metabuddy() {
 }
 
 void test_edge_cases_metabuddy() {
-    printf("\n--- Testing edge cases ---\n");
+    DEBUG_PRINTF("\n--- Testing edge cases ---\n");
     
     BuddyAllocator* allocator = BuddyAllocator_init(NULL);
     if (!allocator) return;
@@ -269,7 +270,7 @@ void test_edge_cases_metabuddy() {
 
 int main() {
 
-    printf("Running buddy allocator tests...\n");
+    DEBUG_PRINTF("Running buddy allocator tests...\n");
 
     test_initialization();
     test_simple_allocations();
@@ -281,13 +282,13 @@ int main() {
     test_allocation_patterns_metabuddy();
     test_edge_cases_metabuddy();
     
-    printf("\nResults: %d passed, %d failed\n", passed, failed);
+    DEBUG_PRINTF("\nResults: %d passed, %d failed\n", passed, failed);
     
     if (failed == 0) {
-        printf("All tests passed! 🎉\n");
+        DEBUG_PRINTF("All tests passed! 🎉\n");
         return 0;
     } else {
-        printf("Some tests failed 😞\n");
+        DEBUG_PRINTF("Some tests failed 😞\n");
         return 1;
     }
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/bitmap.h"
+#include "../include/debug_print.h"
 
 // Some basic testing for my bitmap implementation just to make sure it works
 
@@ -9,17 +10,17 @@ int failed = 0;
 
 void check(int condition, const char* msg) {
     if (condition) {
-        printf("✓ %s\n", msg);
+        DEBUG_PRINTF("✓ %s\n", msg);
         passed++;
     } else {
-        printf("✗ %s\n", msg);
+        DEBUG_PRINTF("✗ %s\n", msg);
         failed++;
     }
 }
 
 void test_basic_stuff() {
     
-    printf("\nTesting basic bitmap operations...\n");
+    DEBUG_PRINTF("\nTesting basic bitmap operations...\n");
     
     // Create a bitmap with 64 bits
     Bitmap* bmp = bitmap_init(64);
@@ -51,7 +52,7 @@ void test_basic_stuff() {
 }
 
 void test_edge_cases() {
-    printf("\nTesting some edge cases...\n");
+    DEBUG_PRINTF("\nTesting some edge cases...\n");
     
     // Test with different sizes
     Bitmap* small = bitmap_init(8);
@@ -83,18 +84,18 @@ void test_edge_cases() {
 
 int main() {
 
-    printf("Running bitmap tests...\n");
+    DEBUG_PRINTF("Running bitmap tests...\n");
     
     test_basic_stuff();
     test_edge_cases();
-    
-    printf("\nResults: %d passed, %d failed\n", passed, failed);
+
+    DEBUG_PRINTF("\nResults: %d passed, %d failed\n", passed, failed);
     
     if (failed == 0) {
-        printf("All tests passed! 🎉\n");
+        DEBUG_PRINTF("All tests passed! 🎉\n");
         return 0;
     } else {
-        printf("Some tests failed 😞\n");
+        DEBUG_PRINTF("Some tests failed 😞\n");
         return 1;
     }
     

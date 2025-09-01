@@ -10,6 +10,11 @@ test/test_bitmap
 test/test_buddy_allocator
 test/test_my_malloc
 test/run_tests
+# Debug executable files
+test/test_bitmap_debug
+test/test_buddy_allocator_debug
+test/test_my_malloc_debug
+test/run_tests_debug
 
 # Static libraries
 *.a

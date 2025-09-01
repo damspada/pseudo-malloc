@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/my_malloc.h"
+#include "../include/debug_print.h"
 
 // Testing pseudo malloc implementation
 
@@ -10,16 +11,16 @@ int failed = 0;
 
 void check(int condition, const char* msg) {
     if (condition) {
-        printf("✓ %s\n", msg);
+        DEBUG_PRINTF("✓ %s\n", msg);
         passed++;
     } else {
-        printf("✗ %s\n", msg);
+        DEBUG_PRINTF("✗ %s\n", msg);
         failed++;
     }
 }
 
 void test_basic_malloc_free() {
-    printf("\n--- Basic malloc/free tests ---\n");
+    DEBUG_PRINTF("\n--- Basic malloc/free tests ---\n");
     
     // Try a simple small allocation
     void* ptr = my_malloc(100);
@@ -39,7 +40,7 @@ void test_basic_malloc_free() {
 }
 
 void test_different_sizes() {
-    printf("\n--- Testing different allocation sizes ---\n");
+    DEBUG_PRINTF("\n--- Testing different allocation sizes ---\n");
         
     // Test various sizes
     void* tiny = my_malloc(1);
@@ -69,7 +70,7 @@ void test_different_sizes() {
 }
 
 void test_multiple_allocations() {
-    printf("\n--- Testing multiple allocations ---\n");
+    DEBUG_PRINTF("\n--- Testing multiple allocations ---\n");
     
     // Allocate several blocks
     void* blocks[8];
@@ -119,7 +120,7 @@ void test_multiple_allocations() {
 }
 
 void test_edge_cases() {
-    printf("\n--- Testing edge cases ---\n");
+    DEBUG_PRINTF("\n--- Testing edge cases ---\n");
         
     // What happens with malloc(0)?
     void* zero_ptr = my_malloc(0);
@@ -132,7 +133,7 @@ void test_edge_cases() {
 }
 
 void test_small_allocation_after_free_big_block() {
-    printf("\n--- Testing small allocation after freeing a big block ---\n");
+    DEBUG_PRINTF("\n--- Testing small allocation after freeing a big block ---\n");
 
     // Allocate a large block
     void* large_block = my_malloc(512);  // 512 bytes
@@ -162,7 +163,7 @@ void test_small_allocation_after_free_big_block() {
 }
 
 void test_full_allocation_of_buddy_pool_512() {
-    printf("\n--- Testing full allocation of buddy pool ---\n");
+    DEBUG_PRINTF("\n--- Testing full allocation of buddy pool ---\n");
 
     // Allocate memory until the 1048576 bytes pool is full with 2048 blocks of 512 bytes
     void* blocks[2048];
@@ -182,7 +183,7 @@ void test_full_allocation_of_buddy_pool_512() {
 }
 
 void test_full_allocation_of_buddy_pool_1023() {
-    printf("\n--- Testing full allocation of buddy pool ---\n");
+    DEBUG_PRINTF("\n--- Testing full allocation of buddy pool ---\n");
 
     // Allocate memory until the 1048576 bytes pool is full with 1024 blocks of 1023 bytes (so rounded to 1024 bit but 1023 to avoid the threshold check)
     void* blocks[1024];
@@ -204,7 +205,7 @@ void test_full_allocation_of_buddy_pool_1023() {
 /* Metabuddy tests */
 
 void test_basic_malloc_free_metabuddy() {
-    printf("\n--- Basic malloc/free tests ---\n");
+    DEBUG_PRINTF("\n--- Basic malloc/free tests ---\n");
     
     // Try a simple small allocation
     void* ptr = my_malloc_metabuddy(100);
@@ -223,7 +224,7 @@ void test_basic_malloc_free_metabuddy() {
 }
 
 void test_different_sizes_metabuddy() {
-    printf("\n--- Testing different allocation sizes ---\n");
+    DEBUG_PRINTF("\n--- Testing different allocation sizes ---\n");
         
     // Test various sizes
     void* tiny = my_malloc_metabuddy(1);
@@ -253,7 +254,7 @@ void test_different_sizes_metabuddy() {
 }
 
 void test_multiple_allocations_metabuddy() {
-    printf("\n--- Testing multiple allocations ---\n");
+    DEBUG_PRINTF("\n--- Testing multiple allocations ---\n");
     
     // Allocate several blocks
     void* blocks[8];
@@ -303,7 +304,7 @@ void test_multiple_allocations_metabuddy() {
 }
 
 void test_edge_cases_metabuddy() {
-    printf("\n--- Testing edge cases ---\n");
+    DEBUG_PRINTF("\n--- Testing edge cases ---\n");
         
     // What happens with malloc(0)?
     void* zero_ptr = my_malloc_metabuddy(0);
@@ -316,7 +317,7 @@ void test_edge_cases_metabuddy() {
 }
 
 void test_small_allocation_after_free_big_block_metabuddy() {
-    printf("\n--- Testing small allocation after freeing a big block ---\n");
+    DEBUG_PRINTF("\n--- Testing small allocation after freeing a big block ---\n");
 
     // Allocate a large block
     void* large_block = my_malloc_metabuddy(512);  // 512 bytes
@@ -346,7 +347,7 @@ void test_small_allocation_after_free_big_block_metabuddy() {
 }
 
 void test_full_allocation_of_buddy_pool_504_metabuddy() {
-    printf("\n--- Testing full allocation of buddy pool ---\n");
+    DEBUG_PRINTF("\n--- Testing full allocation of buddy pool ---\n");
 
     // Allocate memory until the 1048576 bytes pool is full with 2048 blocks of 504 bytes
     // 512 bytes = 504 bytes required + 8 bytes of metadata
@@ -368,7 +369,7 @@ void test_full_allocation_of_buddy_pool_504_metabuddy() {
 }
 
 void test_full_allocation_of_buddy_pool_1015_metabuddy() {
-    printf("\n--- Testing full allocation of buddy pool ---\n");
+    DEBUG_PRINTF("\n--- Testing full allocation of buddy pool ---\n");
 
     // Allocate memory until the 1048576 bytes pool is full with 1024 blocks of 1015 bytes
     // 1023 bytes = 1015 bytes required + 8 bytes of metadata
@@ -392,7 +393,7 @@ void test_full_allocation_of_buddy_pool_1015_metabuddy() {
 
 int main() {
 
-    printf("Running pseudo malloc tests...\n");
+    DEBUG_PRINTF("Running pseudo malloc tests...\n");
     
     test_basic_malloc_free();
     test_different_sizes();
@@ -410,13 +411,13 @@ int main() {
     test_full_allocation_of_buddy_pool_504_metabuddy();
     test_full_allocation_of_buddy_pool_1015_metabuddy();
 
-    printf("\nResults: %d passed, %d failed\n", passed, failed);
+    DEBUG_PRINTF("\nResults: %d passed, %d failed\n", passed, failed);
     
     if (failed == 0) {
-        printf("All tests passed! 🎉\n");
+        DEBUG_PRINTF("All tests passed! 🎉\n");
         return 0;
     } else {
-        printf("Some tests failed 😞\n");
+        DEBUG_PRINTF("Some tests failed 😞\n");
         return 1;
     }
 

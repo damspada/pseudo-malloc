@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "../include/debug_print.h"
 
 // Simple test runner that just runs all the tests
 
@@ -18,18 +19,18 @@ const char* test_descriptions[] = {
 };
 
 int run_single_test(const char* compiled, const char* description) {
-    printf("\n=== Running %s ===\n", description);
+    DEBUG_PRINTF("\n=== Running %s ===\n", description);
     
     // Check if the test executable exists
     if (access(compiled, X_OK) != 0) {
-        printf("ERROR: Can't find compiled test: %s\n", compiled);
-        printf("(forget to compile it?)\n");
+        DEBUG_PRINTF("ERROR: Can't find compiled test: %s\n", compiled);
+        DEBUG_PRINTF("(forget to compile it?)\n");
         return -1;
     }
 
     // Check if the test is executable
     if (access(compiled, X_OK) != 0) {
-        printf("ERROR: Test is not executable: %s\n", compiled);
+        DEBUG_PRINTF("ERROR: Test is not executable: %s\n", compiled);
         return -1;
     }
 
@@ -38,9 +39,9 @@ int run_single_test(const char* compiled, const char* description) {
     int exit_code = WEXITSTATUS(result);
     
     if (exit_code == 0) {
-        printf("✓ %s: PASSED\n", description);
+        DEBUG_PRINTF("✓ %s: PASSED\n", description);
     } else {
-        printf("✗ %s: FAILED (exit code: %d)\n", description, exit_code);
+        DEBUG_PRINTF("✗ %s: FAILED (exit code: %d)\n", description, exit_code);
     }
     
     return exit_code;
@@ -48,8 +49,8 @@ int run_single_test(const char* compiled, const char* description) {
 }
 
 int main() {
-    printf("Running all tests for pseudo-malloc\n");
-    printf("===================================\n");
+    DEBUG_PRINTF("Running all tests for pseudo-malloc\n");
+    DEBUG_PRINTF("===================================\n");
 
     int total_tests = 3;
     int passed = 0;
@@ -68,20 +69,20 @@ int main() {
         }
     }
     
-    printf("\n=== Results ===\n");
-    printf("Passed: %d\n", passed);
-    printf("Failed: %d\n", failed);
+    DEBUG_PRINTF("\n=== Results ===\n");
+    DEBUG_PRINTF("Passed: %d\n", passed);
+    DEBUG_PRINTF("Failed: %d\n", failed);
     
     if (errors > 0) {
-        printf("Errors: %d missing test executables\n", errors);
+        DEBUG_PRINTF("Errors: %d missing test executables\n", errors);
         return 2;
     }
     
     if (passed == total_tests) {
-        printf("\nAwesome! Everything works! 🎉\n");
+        DEBUG_PRINTF("\nAwesome! Everything works! 🎉\n");
         return 0;
     } else {
-        printf("\nSome tests failed 😢\n");
+        DEBUG_PRINTF("\nSome tests failed 😢\n");
         return 1;
     }
     

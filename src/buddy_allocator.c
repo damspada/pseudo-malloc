@@ -1,4 +1,5 @@
 #include "../include/buddy_allocator.h"
+#include "../include/debug_print.h"
 
 // Check if any parent node up the tree is marked as allocated
 static int any_ancestor_set(const Bitmap* bm, size_t node_index) {
@@ -65,13 +66,13 @@ static int any_descendant_set(const Bitmap* bm, size_t node_index, int node_leve
 
 BuddyAllocator* BuddyAllocator_init(BuddyAllocator* allocator) {
     
-    printf("[BuddyAllocator_init]: Initializing Buddy Allocator\n");
+    DEBUG_PRINTF("[BuddyAllocator_init]: Initializing Buddy Allocator\n");
 
     // If allocator is NULL, create a new one
     if (!allocator) {
         allocator = malloc(sizeof(BuddyAllocator));
         if (!allocator) {
-            fprintf(stderr, "[BuddyAllocator_init]: Error: Memory allocation failed\n");
+            DEBUG_FPRINTF(stderr, "[BuddyAllocator_init]: Error: Memory allocation failed\n");
             return NULL;
         }
 
@@ -84,7 +85,7 @@ BuddyAllocator* BuddyAllocator_init(BuddyAllocator* allocator) {
     if (!allocator->memory_pool) {
         allocator->memory_pool = malloc(MAX_BLOCK_SIZE);
         if (!allocator->memory_pool) {
-            fprintf(stderr, "[BuddyAllocator_init]: Error: Memory pool allocation failed\n");
+            DEBUG_FPRINTF(stderr, "[BuddyAllocator_init]: Error: Memory pool allocation failed\n");
             if (allocator->allocation_bitmap) {
                 free(allocator);
             }
@@ -96,7 +97,7 @@ BuddyAllocator* BuddyAllocator_init(BuddyAllocator* allocator) {
     if (!allocator->allocation_bitmap) {
         allocator->allocation_bitmap = bitmap_init(MAX_BLOCK_SIZE);
         if (!allocator->allocation_bitmap) {
-            fprintf(stderr, "[BuddyAllocator_init]: Error: Bitmap initialization failed\n");
+            DEBUG_FPRINTF(stderr, "[BuddyAllocator_init]: Error: Bitmap initialization failed\n");
             free(allocator->memory_pool);
             free(allocator);
             return NULL;
@@ -108,23 +109,23 @@ BuddyAllocator* BuddyAllocator_init(BuddyAllocator* allocator) {
 
 void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
 
-    printf("[BuddyAllocator_malloc]: Requested size: %zu bytes\n", size);
+    DEBUG_PRINTF("[BuddyAllocator_malloc]: Requested size: %zu bytes\n", size);
 
     // Check that size is != 0 (already checked in my_malloc.c)
     if (size == 0) {
-        printf("[BuddyAllocator_malloc]: Warning: Requested size is 0\n");
+        DEBUG_PRINTF("[BuddyAllocator_malloc]: Warning: Requested size is 0\n");
         return NULL;
     }
 
     // Check that size exceeds MAX_BLOCK_SIZE (already checked in my_malloc.c)
     if (size > MAX_BLOCK_SIZE) {
-        fprintf(stderr, "[BuddyAllocator_malloc]: Error: Requested size exceeds maximum block size\n");
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_malloc]: Error: Requested size exceeds maximum block size\n");
         return NULL;
     }
 
     // Check if buddy allocator struct is initialized
     if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
-        printf("[BuddyAllocator_malloc]: Buddy Allocator not initialized\n");
+        DEBUG_PRINTF("[BuddyAllocator_malloc]: Buddy Allocator not initialized\n");
         allocator = BuddyAllocator_init(allocator);
         if (!allocator) {
             return NULL;
@@ -134,7 +135,7 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
     // Very small allocations have proportionally higher overhead costs so we round up
     size_t aligned_size = size;
     if (aligned_size < MIN_BLOCK_SIZE) {
-        printf("[BuddyAllocator_malloc]: Requested size of %zu too small, rounding up to minimum block size %d\n", size, MIN_BLOCK_SIZE);
+        DEBUG_PRINTF("[BuddyAllocator_malloc]: Requested size of %zu too small, rounding up to minimum block size %d\n", size, MIN_BLOCK_SIZE);
         aligned_size = MIN_BLOCK_SIZE;
     }
 
@@ -182,7 +183,7 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
     }
 
     if (!found) {
-        fprintf(stderr, "[BuddyAllocator_malloc]: Error: No free block found at level %d\n", current_level);
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_malloc]: Error: No free block found at level %d\n", current_level);
         return NULL;
     }
 
@@ -194,7 +195,7 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
     size_t offset = index_found * block_size;
     void* allocated_block = (void*)((unsigned long)allocator->memory_pool + offset);
 
-    printf("[BuddyAllocator_malloc]: Allocated block at level %d, index %d, address %p, size %zu\n", level_found, index_found, allocated_block, block_size);
+    DEBUG_PRINTF("[BuddyAllocator_malloc]: Allocated block at level %d, index %d, address %p, size %zu\n", level_found, index_found, allocated_block, block_size);
 
     return allocated_block;
     
@@ -202,23 +203,23 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
 
 void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
 
-    printf("[BuddyAllocator_malloc_metabuddy]: Requested size: %zu bytes\n", size);
+    DEBUG_PRINTF("[BuddyAllocator_malloc_metabuddy]: Requested size: %zu bytes\n", size);
 
     // Check that size is != 0 (already checked in my_malloc.c)
     if (size == 0) {
-        printf("[BuddyAllocator_malloc_metabuddy]: Warning: Requested size is 0\n");
+        DEBUG_PRINTF("[BuddyAllocator_malloc_metabuddy]: Warning: Requested size is 0\n");
         return NULL;
     }
 
     // Check that size exceeds MAX_BLOCK_SIZE (already checked in my_malloc.c)
     if (size > MAX_BLOCK_SIZE) {
-        fprintf(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: Requested size exceeds maximum block size\n");
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: Requested size exceeds maximum block size\n");
         return NULL;
     }
 
     // Check if buddy allocator struct is initialized
     if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
-        printf("[BuddyAllocator_malloc_metabuddy]: Buddy Allocator not initialized\n");
+        DEBUG_PRINTF("[BuddyAllocator_malloc_metabuddy]: Buddy Allocator not initialized\n");
         allocator = BuddyAllocator_init(allocator);
         if (!allocator) {
             return NULL;
@@ -231,7 +232,7 @@ void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
     // Very small allocations have proportionally higher overhead costs so we round up
     size_t aligned_size = size_with_metadata;
     if (aligned_size < MIN_BLOCK_SIZE) {
-        printf("[BuddyAllocator_malloc_metabuddy]: Requested size of %zu too small, rounding up to minimum block size %d\n", size, MIN_BLOCK_SIZE);
+        DEBUG_PRINTF("[BuddyAllocator_malloc_metabuddy]: Requested size of %zu too small, rounding up to minimum block size %d\n", size, MIN_BLOCK_SIZE);
         aligned_size = MIN_BLOCK_SIZE;
     }
 
@@ -279,7 +280,7 @@ void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
     }
 
     if (!found) {
-        fprintf(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: No free block found at level %d\n", current_level);
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: No free block found at level %d\n", current_level);
         return NULL;
     }
 
@@ -298,7 +299,7 @@ void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
     // Move pointer to the location just after the metadata
     void * allocated_block_ptr = (void*)((char*)allocated_block + sizeof(size_t));
 
-    printf("[BuddyAllocator_malloc_metabuddy]: Allocated block at level %d, index %d, address %p, size %zu (including %zu bytes of metadata)\n", 
+    DEBUG_PRINTF("[BuddyAllocator_malloc_metabuddy]: Allocated block at level %d, index %d, address %p, size %zu (including %zu bytes of metadata)\n", 
            level_found, index_found, allocated_block, block_size, sizeof(size_t));
 
     return allocated_block_ptr;
@@ -308,15 +309,15 @@ void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
 void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
 
     if (ptr == NULL) {
-        printf("[BuddyAllocator_free]: Warning: Attempting to free NULL pointer, ignoring\n");
+        DEBUG_PRINTF("[BuddyAllocator_free]: Warning: Attempting to free NULL pointer, ignoring\n");
         return;
     }
 
-    printf("[BuddyAllocator_free]: Freeing pointer %p\n", ptr);
+    DEBUG_PRINTF("[BuddyAllocator_free]: Freeing pointer %p\n", ptr);
 
     // Check if buddy is initialized
     if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
-        printf("[BuddyAllocator_free]: Error: Buddy Allocator not properly initialized\n");
+        DEBUG_PRINTF("[BuddyAllocator_free]: Error: Buddy Allocator not properly initialized\n");
         return;
     }
 
@@ -326,7 +327,7 @@ void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
 
     // Check if pointer is within the memory pool bounds
     if ((char*)ptr < pool_start || (char*)ptr >= pool_end) {
-        fprintf(stderr, "[BuddyAllocator_free]: Error: Pointer %p is outside memory pool bounds\n", ptr);
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_free]: Error: Pointer %p is outside memory pool bounds\n", ptr);
         return;
     }
 
@@ -366,14 +367,14 @@ void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
     }
     
     if (found_level == -1) {
-        fprintf(stderr, "[BuddyAllocator_free]: Error: Could not find allocated block for pointer %p\n", ptr);
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_free]: Error: Could not find allocated block for pointer %p\n", ptr);
         return;
     }
     
     // Clear the stored bitmap index
     bitmap_clear(allocator->allocation_bitmap, found_bitmap_index);
 
-    printf("[BuddyAllocator_free]: Freed block at level %d, index %zu, size %zu bytes\n", found_level, found_index, found_block_size);
+    DEBUG_PRINTF("[BuddyAllocator_free]: Freed block at level %d, index %zu, size %zu bytes\n", found_level, found_index, found_block_size);
 
 }
 
@@ -381,15 +382,15 @@ void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
 void BuddyAllocator_free_metabuddy(BuddyAllocator* allocator, void* ptr) {
 
     if (ptr == NULL) {
-        printf("[BuddyAllocator_free_metabuddy]: Warning: Attempting to free NULL pointer, ignoring\n");
+        DEBUG_PRINTF("[BuddyAllocator_free_metabuddy]: Warning: Attempting to free NULL pointer, ignoring\n");
         return;
     }
 
-    printf("[BuddyAllocator_free_metabuddy]: Freeing pointer %p\n", ptr);
+    DEBUG_PRINTF("[BuddyAllocator_free_metabuddy]: Freeing pointer %p\n", ptr);
 
     // Check if buddy is initialized
     if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
-        printf("[BuddyAllocator_free_metabuddy]: Error: Buddy Allocator not properly initialized\n");
+        DEBUG_PRINTF("[BuddyAllocator_free_metabuddy]: Error: Buddy Allocator not properly initialized\n");
         return;
     }
 
@@ -399,7 +400,7 @@ void BuddyAllocator_free_metabuddy(BuddyAllocator* allocator, void* ptr) {
 
     // Check if pointer is within the memory pool bounds
     if ((char*)ptr < pool_start || (char*)ptr >= pool_end) {
-        fprintf(stderr, "[BuddyAllocator_free_metabuddy]: Error: Pointer %p is outside memory pool bounds\n", ptr);
+        DEBUG_FPRINTF(stderr, "[BuddyAllocator_free_metabuddy]: Error: Pointer %p is outside memory pool bounds\n", ptr);
         return;
     }
 
@@ -410,6 +411,6 @@ void BuddyAllocator_free_metabuddy(BuddyAllocator* allocator, void* ptr) {
     // Clear the stored bitmap index
     bitmap_clear(allocator->allocation_bitmap, found_bitmap_index);
 
-    printf("[BuddyAllocator_free_metabuddy]: Freed block of bitmap index %zu\n", found_bitmap_index);
+    DEBUG_PRINTF("[BuddyAllocator_free_metabuddy]: Freed block of bitmap index %zu\n", found_bitmap_index);
 
 }

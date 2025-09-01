@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "../include/my_malloc.h"
+#include "../include/debug_print.h"
 
 BuddyAllocator buddy_allocator = {0};
 
@@ -15,22 +16,22 @@ void* my_malloc(size_t size) {
 
     // Zero size --> return NULL
     if(size == 0) {
-        printf("[my_malloc]: Warning: size is 0, returning NULL\n");
+        DEBUG_PRINTF("[my_malloc]: Warning: size is 0, returning NULL\n");
         return NULL;
     }
 
     // Small size --> buddy allocator
     if (size < SMALL_THRESHOLD) {
-        printf("[my_malloc]: Small size (%zu), using BuddyAllocator\n", size);
+        DEBUG_PRINTF("[my_malloc]: Small size (%zu), using BuddyAllocator\n", size);
         void* ptr = BuddyAllocator_malloc(&buddy_allocator, size);
         if (!ptr) {
-            fprintf(stderr, "[my_malloc]: Error: BuddyAllocator failed\n");
+            DEBUG_FPRINTF(stderr, "[my_malloc]: Error: BuddyAllocator failed\n");
         }
         return ptr;
     }
 
     // Large size --> use mmap
-    printf("[my_malloc]: Large size (%zu), using mmap\n", size);
+    DEBUG_PRINTF("[my_malloc]: Large size (%zu), using mmap\n", size);
 
     // Calculate total size needed (including metadata)
     size_t total_size = size + sizeof(size_t);
@@ -41,7 +42,7 @@ void* my_malloc(size_t size) {
     // check for correct allocation
     if (ptr == MAP_FAILED) {
         errno = ENOMEM; // Out of memory
-        fprintf(stderr, "[my_malloc]: Error: mmap failed\n");
+        DEBUG_FPRINTF(stderr, "[my_malloc]: Error: mmap failed\n");
         return NULL;
     }
 
@@ -51,7 +52,7 @@ void* my_malloc(size_t size) {
 
     // Return pointer after metadata
     void* return_ptr = (char*)ptr + sizeof(size_t);
-    printf("[my_malloc]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", return_ptr, size, alloc_size);
+    DEBUG_PRINTF("[my_malloc]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", return_ptr, size, alloc_size);
 
     return return_ptr;
 }
@@ -62,22 +63,22 @@ void* my_malloc_metabuddy(size_t size) {
 
     // Zero size --> return NULL
     if(size == 0) {
-        printf("[my_malloc_metabuddy]: Warning: size is 0, returning NULL\n");
+        DEBUG_PRINTF("[my_malloc_metabuddy]: Warning: size is 0, returning NULL\n");
         return NULL;
     }
 
     // Small size --> buddy allocator
     if (size < SMALL_THRESHOLD) {
-        printf("[my_malloc_metabuddy]: Small size (%zu), using BuddyAllocator\n", size);
+        DEBUG_PRINTF("[my_malloc_metabuddy]: Small size (%zu), using BuddyAllocator\n", size);
         void* ptr = BuddyAllocator_malloc_metabuddy(&buddy_allocator, size);
         if (!ptr) {
-            fprintf(stderr, "[my_malloc_metabuddy]: Error: BuddyAllocator failed\n");
+            DEBUG_FPRINTF(stderr, "[my_malloc_metabuddy]: Error: BuddyAllocator failed\n");
         }
         return ptr;
     }
 
     // Large size --> use mmap
-    printf("[my_malloc_metabuddy]: Large size (%zu), using mmap\n", size);
+    DEBUG_PRINTF("[my_malloc_metabuddy]: Large size (%zu), using mmap\n", size);
 
     // Calculate total size needed (including metadata)
     size_t total_size = size + sizeof(size_t);
@@ -88,7 +89,7 @@ void* my_malloc_metabuddy(size_t size) {
     // check for correct allocation
     if (ptr == MAP_FAILED) {
         errno = ENOMEM; // Out of memory
-        fprintf(stderr, "[my_malloc_metabuddy]: Error: mmap failed\n");
+        DEBUG_FPRINTF(stderr, "[my_malloc_metabuddy]: Error: mmap failed\n");
         return NULL;
     }
 
@@ -98,7 +99,7 @@ void* my_malloc_metabuddy(size_t size) {
 
     // Return pointer after metadata
     void* return_ptr = (char*)ptr + sizeof(size_t);
-    printf("[my_malloc_metabuddy]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", return_ptr, size, alloc_size);
+    DEBUG_PRINTF("[my_malloc_metabuddy]: Successful allocation: ptr=%p, requested=%zu, allocated=%zu\n", return_ptr, size, alloc_size);
 
     return return_ptr;
 }
@@ -107,19 +108,19 @@ void my_free(void* ptr) {
 
     // Check if ptr is NULL
     if (ptr == NULL) {
-        printf("[my_free]: Warning: attempting to free NULL pointer\n");
+        DEBUG_PRINTF("[my_free]: Warning: attempting to free NULL pointer\n");
         return;
     }
 
     // Check if ptr is within BuddyAllocator range --> ptr deallocation with BuddyAllocator
     if (buddy_allocator.memory_pool && ptr >= buddy_allocator.memory_pool && ptr < (buddy_allocator.memory_pool + BUDDY_POOL_SIZE)) {
-        printf("[my_free]: Pointer deallocation using BuddyAllocator free..\n");
+        DEBUG_PRINTF("[my_free]: Pointer deallocation using BuddyAllocator free..\n");
         BuddyAllocator_free(&buddy_allocator, ptr);
         return;
     }
 
     // Ptr deallocation with munmap
-    printf("[my_free]: Pointer deallocation with munmap..\n");
+    DEBUG_PRINTF("[my_free]: Pointer deallocation with munmap..\n");
     void* metadata_ptr = (char*)ptr - sizeof(size_t);
 
     // Get the original requested size stored in metadata
@@ -129,30 +130,30 @@ void my_free(void* ptr) {
     size_t alloc_size = round_to_pages(sizeof(size_t) + requested_size);
     
     if (munmap(metadata_ptr, alloc_size) == -1) {
-        fprintf(stderr, "[my_free]: Error: munmap failed\n");
+        DEBUG_FPRINTF(stderr, "[my_free]: Error: munmap failed\n");
         return;
     }
     
-    printf("[my_free]: Successfully freed %zu bytes (requested: %zu)\n", alloc_size, requested_size);
+    DEBUG_PRINTF("[my_free]: Successfully freed %zu bytes (requested: %zu)\n", alloc_size, requested_size);
 }
 
 void my_free_metabuddy(void* ptr) {
 
     // Check if ptr is NULL
     if (ptr == NULL) {
-        printf("[my_free_metabuddy]: Warning: attempting to free NULL pointer\n");
+        DEBUG_PRINTF("[my_free_metabuddy]: Warning: attempting to free NULL pointer\n");
         return;
     }
 
     // Check if ptr is within BuddyAllocator range --> ptr deallocation with BuddyAllocator
     if (buddy_allocator.memory_pool && ptr >= buddy_allocator.memory_pool && ptr < (buddy_allocator.memory_pool + BUDDY_POOL_SIZE)) {
-        printf("[my_free_metabuddy]: Pointer deallocation using BuddyAllocator free..\n");
+        DEBUG_PRINTF("[my_free_metabuddy]: Pointer deallocation using BuddyAllocator free..\n");
         BuddyAllocator_free_metabuddy(&buddy_allocator, ptr);
         return;
     }
 
     // Ptr deallocation with munmap
-    printf("[my_free_metabuddy]: Pointer deallocation with munmap..\n");
+    DEBUG_PRINTF("[my_free_metabuddy]: Pointer deallocation with munmap..\n");
     void* metadata_ptr = (char*)ptr - sizeof(size_t);
 
     // Get the original requested size stored in metadata
@@ -162,9 +163,9 @@ void my_free_metabuddy(void* ptr) {
     size_t alloc_size = round_to_pages(sizeof(size_t) + requested_size);
     
     if (munmap(metadata_ptr, alloc_size) == -1) {
-        fprintf(stderr, "[my_free_metabuddy]: Error: munmap failed\n");
+        DEBUG_FPRINTF(stderr, "[my_free_metabuddy]: Error: munmap failed\n");
         return;
     }
 
-    printf("[my_free_metabuddy]: Successfully freed %zu bytes (requested: %zu)\n", alloc_size, requested_size);
+    DEBUG_PRINTF("[my_free_metabuddy]: Successfully freed %zu bytes (requested: %zu)\n", alloc_size, requested_size);
 }
