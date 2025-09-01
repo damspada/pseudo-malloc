@@ -26,4 +26,10 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size);
 // Free memory using the Buddy Allocator
 void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr);
 
+// Allocate memory using the Buddy Allocator with metadata
+void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size);
+
+// Free memory using the Buddy Allocator with metadata
+void BuddyAllocator_free_metabuddy(BuddyAllocator* allocator, void* ptr);
+
 #endif

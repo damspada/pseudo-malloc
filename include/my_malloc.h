@@ -18,4 +18,8 @@
 void* my_malloc(size_t size); // Allocate memory
 void my_free(void* ptr); // Free memory
 
+void* my_malloc_metabuddy(size_t size); // Allocate memory with metabuddy
+void my_free_metabuddy(void* ptr); // Free memory with metabuddy
+
+
 #endif // MY_MALLOC_H

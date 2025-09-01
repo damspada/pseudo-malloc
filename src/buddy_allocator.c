@@ -200,6 +200,111 @@ void* BuddyAllocator_malloc(BuddyAllocator* allocator, size_t size) {
     
 }
 
+void* BuddyAllocator_malloc_metabuddy(BuddyAllocator* allocator, size_t size) {
+
+    printf("[BuddyAllocator_malloc_metabuddy]: Requested size: %zu bytes\n", size);
+
+    // Check that size is != 0 (already checked in my_malloc.c)
+    if (size == 0) {
+        printf("[BuddyAllocator_malloc_metabuddy]: Warning: Requested size is 0\n");
+        return NULL;
+    }
+
+    // Check that size exceeds MAX_BLOCK_SIZE (already checked in my_malloc.c)
+    if (size > MAX_BLOCK_SIZE) {
+        fprintf(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: Requested size exceeds maximum block size\n");
+        return NULL;
+    }
+
+    // Check if buddy allocator struct is initialized
+    if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
+        printf("[BuddyAllocator_malloc_metabuddy]: Buddy Allocator not initialized\n");
+        allocator = BuddyAllocator_init(allocator);
+        if (!allocator) {
+            return NULL;
+        }
+    }
+
+    // Size with metadata
+    size_t size_with_metadata = size + sizeof(size_t);
+
+    // Very small allocations have proportionally higher overhead costs so we round up
+    size_t aligned_size = size_with_metadata;
+    if (aligned_size < MIN_BLOCK_SIZE) {
+        printf("[BuddyAllocator_malloc_metabuddy]: Requested size of %zu too small, rounding up to minimum block size %d\n", size, MIN_BLOCK_SIZE);
+        aligned_size = MIN_BLOCK_SIZE;
+    }
+
+    // Find the level with blocks large enough for the request
+    size_t block_size = MAX_BLOCK_SIZE;
+    int current_level = 0;
+    while (block_size / 2 >= aligned_size && block_size / 2 >= MIN_BLOCK_SIZE) {
+        block_size /= 2;
+        current_level++;
+    }
+
+    // Variables to store the found block information
+    int level_found = -1;
+    int index_found = -1;
+    int found = 0;
+    
+    // Try to find a free block at this level
+    Bitmap* bitmap = allocator->allocation_bitmap;
+    size_t blocks_at_level = MAX_BLOCK_SIZE / block_size; // Number of blocks at this level
+    size_t start_index = (1 << current_level) - 1; // The index of the first block at this level in the bitmap using 2^level - 1
+
+    for (size_t i = 0; i < blocks_at_level; i++) {
+        size_t bitmap_index = start_index + i;
+
+        // Skip if this block is already allocated
+        if (bitmap_test(bitmap, bitmap_index) == 1) {
+            continue;
+        }
+
+        // Skip if any parent block is allocated (would overlap)
+        if (any_ancestor_set(bitmap, bitmap_index)) {
+            continue;
+        }
+
+        // Skip if any child blocks are allocated (would fragment)
+        if (any_descendant_set(bitmap, bitmap_index, current_level)) {
+            continue;
+        }
+
+        // Found a usable block
+        level_found = current_level;
+        index_found = i;
+        found = 1;
+        break;
+    }
+
+    if (!found) {
+        fprintf(stderr, "[BuddyAllocator_malloc_metabuddy]: Error: No free block found at level %d\n", current_level);
+        return NULL;
+    }
+
+    // Mark the block as allocated in the bitmap
+    size_t allocated_index = start_index + index_found;
+    bitmap_set(allocator->allocation_bitmap, allocated_index);
+
+    // Calculate the memory address of the allocated block
+    size_t offset = index_found * block_size;
+    void* allocated_block = (void*)((unsigned long)allocator->memory_pool + offset);
+
+    // Store bitmap index for easy freeing
+    size_t* metadata = (size_t*)allocated_block;
+    *metadata = allocated_index;
+
+    // Move pointer to the location just after the metadata
+    void * allocated_block_ptr = (void*)((char*)allocated_block + sizeof(size_t));
+
+    printf("[BuddyAllocator_malloc_metabuddy]: Allocated block at level %d, index %d, address %p, size %zu (including %zu bytes of metadata)\n", 
+           level_found, index_found, allocated_block, block_size, sizeof(size_t));
+
+    return allocated_block_ptr;
+    
+}
+
 void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
 
     if (ptr == NULL) {
@@ -269,4 +374,42 @@ void BuddyAllocator_free(BuddyAllocator* allocator, void* ptr) {
     bitmap_clear(allocator->allocation_bitmap, found_bitmap_index);
 
     printf("[BuddyAllocator_free]: Freed block at level %d, index %zu, size %zu bytes\n", found_level, found_index, found_block_size);
+
+}
+
+
+void BuddyAllocator_free_metabuddy(BuddyAllocator* allocator, void* ptr) {
+
+    if (ptr == NULL) {
+        printf("[BuddyAllocator_free_metabuddy]: Warning: Attempting to free NULL pointer, ignoring\n");
+        return;
+    }
+
+    printf("[BuddyAllocator_free_metabuddy]: Freeing pointer %p\n", ptr);
+
+    // Check if buddy is initialized
+    if (!allocator || !allocator->memory_pool || !allocator->allocation_bitmap) {
+        printf("[BuddyAllocator_free_metabuddy]: Error: Buddy Allocator not properly initialized\n");
+        return;
+    }
+
+    // Compute pool bounds
+    char* pool_start = (char*)allocator->memory_pool;
+    char* pool_end = pool_start + MAX_BLOCK_SIZE;
+
+    // Check if pointer is within the memory pool bounds
+    if ((char*)ptr < pool_start || (char*)ptr >= pool_end) {
+        fprintf(stderr, "[BuddyAllocator_free_metabuddy]: Error: Pointer %p is outside memory pool bounds\n", ptr);
+        return;
+    }
+
+    // Retrieve metadata so the index of the block in the bitmap
+    size_t* metadata = (size_t*)((char*)ptr - sizeof(size_t));
+    size_t found_bitmap_index = *metadata;
+
+    // Clear the stored bitmap index
+    bitmap_clear(allocator->allocation_bitmap, found_bitmap_index);
+
+    printf("[BuddyAllocator_free_metabuddy]: Freed block of bitmap index %zu\n", found_bitmap_index);
+
 }
