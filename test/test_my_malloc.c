@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -395,21 +396,51 @@ int main() {
 
     DEBUG_PRINTF("Running pseudo malloc tests...\n");
     
-    test_basic_malloc_free();
-    test_different_sizes();
-    test_multiple_allocations();
-    test_edge_cases();
-    test_small_allocation_after_free_big_block();
-    test_full_allocation_of_buddy_pool_512();
-    test_full_allocation_of_buddy_pool_1023();
+    int runs = 1000;
+    struct timeval t0, t1;
+    long long sum_standard = 0;
+    long long sum_metabuddy = 0;
+
+    for (int i = 0; i < runs; i++) {
+        gettimeofday(&t0, NULL);
+        
+        test_basic_malloc_free();
+        test_different_sizes();
+        test_multiple_allocations();
+        test_edge_cases();
+        test_small_allocation_after_free_big_block();
+        test_full_allocation_of_buddy_pool_512();
+        test_full_allocation_of_buddy_pool_1023();
+        
+        gettimeofday(&t1, NULL);
+
+        long long diff = (long long)(t1.tv_sec - t0.tv_sec) * 1000000LL + (long long)(t1.tv_usec - t0.tv_usec);
+        sum_standard += diff;
+    }
+
+    for (int i = 0; i < runs; i++) {
+        gettimeofday(&t0, NULL);
+
+        test_basic_malloc_free_metabuddy();
+        test_different_sizes_metabuddy();
+        test_multiple_allocations_metabuddy();
+        test_edge_cases_metabuddy();
+        test_small_allocation_after_free_big_block_metabuddy();
+        test_full_allocation_of_buddy_pool_504_metabuddy();
+        test_full_allocation_of_buddy_pool_1015_metabuddy();
+
+        gettimeofday(&t1, NULL);
+
+        long long diff = (long long)(t1.tv_sec - t0.tv_sec) * 1000000LL + (long long)(t1.tv_usec - t0.tv_usec);
+        sum_metabuddy += diff;
+    }
+
+    long long avg_standard = sum_standard / runs;
+    long long avg_metabuddy = sum_metabuddy / runs;
     
-    test_basic_malloc_free_metabuddy();
-    test_different_sizes_metabuddy();
-    test_multiple_allocations_metabuddy();
-    test_edge_cases_metabuddy();
-    test_small_allocation_after_free_big_block_metabuddy();
-    test_full_allocation_of_buddy_pool_504_metabuddy();
-    test_full_allocation_of_buddy_pool_1015_metabuddy();
+    printf("Benchmark runs: %d\n", runs);
+    printf("Standard buddy allocator: avg %lld us\n", avg_standard);
+    printf("Metabuddy allocator:      avg %lld us\n", avg_metabuddy);
 
     DEBUG_PRINTF("\nResults: %d passed, %d failed\n", passed, failed);
     
